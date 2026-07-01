@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ClerkProvider, SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -8,7 +8,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 export const metadata: Metadata = {
   title: "Odin Platform",
-  description: "Developer workstation management hub",
+  description: "Open-source workstation backup, restore, catalog, and migration hub for the Odin CLI.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -22,4 +22,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-
