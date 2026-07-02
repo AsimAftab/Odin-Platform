@@ -59,6 +59,13 @@ Every model is scoped by **`userId` (a string = Better Auth user id)**, not a Mo
 
 `lib/db.ts` caches the Mongoose connection on `global` (serverless-safe). Models use the `mongoose.models.X || mongoose.model(...)` guard to survive hot-reload — follow that pattern for new models.
 
+### Tool catalog (`/catalog`)
+
+Public, curated catalog of dev tools + their install commands (winget/choco/scoop).
+- Models: `CatalogTool` (curated entries, unique `slug`) and `ToolRequest` (user-submitted "please add X", scoped by `userId`).
+- Seed data lives in `lib/catalog-seed.ts`. `lib/ensure-catalog.ts` **lazily seeds the catalog when empty** (called from the page + `GET /api/catalog`), so a fresh deploy has data with no manual step. `bun run seed:catalog` (`scripts/seed-catalog.ts`) upserts by slug to update/extend entries.
+- `GET /api/catalog` is **public** (also meant for the Odin CLI); `POST /api/catalog/requests` requires a session. The `/catalog` page is public (not under `/dashboard`, so not force-guarded).
+
 ### Data access patterns
 
 - **Server Components** (dashboard pages, e.g. `app/dashboard/snapshots/page.tsx`) call `getSession()` + `connectDB()` and query Mongoose directly, then `.lean()`. They are the read path for the UI.

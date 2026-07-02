@@ -13,6 +13,7 @@ import {
   Settings,
   Monitor,
   SlidersHorizontal,
+  Boxes,
   LogOut,
 } from "lucide-react";
 
@@ -20,6 +21,7 @@ const nav = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/snapshots", label: "Snapshots", icon: Clock },
   { href: "/dashboard/tools", label: "Dev Tools", icon: Package },
+  { href: "/catalog", label: "Catalog", icon: Boxes },
   { href: "/dashboard/profiles", label: "Profiles", icon: Cpu },
   { href: "/dashboard/health", label: "Health", icon: HeartPulse },
   { href: "/dashboard/config", label: "Config Vault", icon: SlidersHorizontal },
