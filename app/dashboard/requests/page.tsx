@@ -36,6 +36,17 @@ export default async function RequestsPage() {
       id: String(d._id),
       name: d.name,
       notes: d.notes ?? "",
+      description: d.description ?? "",
+      category: d.category ?? "",
+      homepage: d.homepage ?? "",
+      correctionNote: d.correctionNote ?? "",
+      install: (d.install ?? []).map(
+        (i: { manager: string; packageId: string; command?: string }) => ({
+          manager: i.manager,
+          packageId: i.packageId,
+          command: i.command ?? "",
+        })
+      ),
       status: d.status,
       createdAt: new Date(d.createdAt).toISOString(),
       requesterName: u?.name ?? "Unknown",

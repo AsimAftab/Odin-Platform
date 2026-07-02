@@ -2,7 +2,8 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface ICatalogInstall {
   manager: string; // winget | chocolatey | scoop | npm | manual ...
-  command: string; // full install command
+  command: string; // full install command (display / copy)
+  packageId?: string; // structured id so the CLI can build the command safely
 }
 
 export interface ICatalogTool extends Document {
@@ -21,6 +22,7 @@ const InstallSchema = new Schema<ICatalogInstall>(
   {
     manager: { type: String, required: true },
     command: { type: String, required: true },
+    packageId: { type: String },
   },
   { _id: false }
 );
