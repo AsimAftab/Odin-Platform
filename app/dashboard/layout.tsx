@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "@/lib/auth-client";
@@ -14,6 +15,7 @@ import {
   Monitor,
   SlidersHorizontal,
   Boxes,
+  Inbox,
   LogOut,
 } from "lucide-react";
 
@@ -33,6 +35,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
+  const [isMaintainer, setIsMaintainer] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/maintainer")
+      .then((r) => r.json())
+      .then((d) => active && setIsMaintainer(!!d.isMaintainer))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const navItems = isMaintainer
+    ? [...nav, { href: "/dashboard/requests", label: "Requests", icon: Inbox }]
+    : nav;
 
   async function handleSignOut() {
     await signOut();
@@ -49,7 +67,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <span className="text-xs text-muted-foreground mt-1">Platform</span>
         </div>
 
-        {nav.map(({ href, label, icon: Icon }) => (
+        {navItems.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
