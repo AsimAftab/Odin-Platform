@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/session";
 import { connectDB } from "@/lib/db";
 import { Machine } from "@/models/Machine";
 import { Snapshot } from "@/models/Snapshot";
@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Monitor, Clock, Package, Code } from "lucide-react";
 
 export default async function MachinesPage() {
-  const { userId } = await auth();
+  const { userId } = await getSession();
   await connectDB();
 
   const machines = await Machine.find({ userId }).sort({ lastSeenAt: -1 }).lean();

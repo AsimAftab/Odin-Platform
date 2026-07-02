@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/session";
 import { connectDB } from "@/lib/db";
 import { Machine } from "@/models/Machine";
 
 export async function GET() {
-  const { userId } = await auth();
+  const { userId } = await getSession();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   await connectDB();

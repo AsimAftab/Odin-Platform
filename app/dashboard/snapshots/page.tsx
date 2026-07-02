@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/session";
 import { connectDB } from "@/lib/db";
 import { Snapshot } from "@/models/Snapshot";
 import { Machine } from "@/models/Machine";
@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Clock, Tag } from "lucide-react";
 
 export default async function SnapshotsPage() {
-  const { userId } = await auth();
+  const { userId } = await getSession();
   await connectDB();
 
   const snapshots = await Snapshot.find({ userId })

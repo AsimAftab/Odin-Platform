@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import { validateApiToken } from "@/lib/auth";
+import { validateApiToken } from "@/lib/api-token";
 import { Machine } from "@/models/Machine";
 import { Snapshot } from "@/models/Snapshot";
 

@@ -1,22 +1,29 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 
-const isPublicRoute = createRouteMatcher([
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/api/ingest(.*)",
-]);
+// Only /dashboard requires a logged-in web session. Everything else is either
+// public (landing, auth pages, Better Auth endpoints) or self-guards:
+//   - /api/ingest authenticates the CLI via Bearer token
+//   - /api/tokens|snapshots|machines call getSession() and return 401 themselves
+// This uses an optimistic cookie check (no DB call) so it runs on the edge.
+export default function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
-export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
-    await auth.protect();
+  if (pathname.startsWith("/dashboard")) {
+    const sessionCookie = getSessionCookie(req);
+    if (!sessionCookie) {
+      const signIn = new URL("/sign-in", req.url);
+      signIn.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(signIn);
+    }
   }
-});
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/__clerk/(.*)",
     "/(api|trpc)(.*)",
   ],
 };
-

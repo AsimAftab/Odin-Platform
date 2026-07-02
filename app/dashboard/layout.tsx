@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut, useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -13,6 +13,7 @@ import {
   Settings,
   Monitor,
   SlidersHorizontal,
+  LogOut,
 } from "lucide-react";
 
 const nav = [
@@ -28,6 +29,14 @@ const nav = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  async function handleSignOut() {
+    await signOut();
+    router.push("/");
+    router.refresh();
+  }
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
@@ -54,8 +63,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Link>
         ))}
 
-        <div className="mt-auto px-2 pt-4 border-t border-border">
-          <UserButton />
+        <div className="mt-auto flex flex-col gap-2 px-1 pt-4 border-t border-border">
+          {session?.user && (
+            <div className="px-2">
+              <p className="truncate text-sm font-medium text-foreground">
+                {session.user.name || "Account"}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">{session.user.email}</p>
+            </div>
+          )}
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            Sign out
+          </button>
         </div>
       </aside>
 

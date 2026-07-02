@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/session";
 import { connectDB } from "@/lib/db";
 import { Snapshot } from "@/models/Snapshot";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,7 @@ export default async function SnapshotDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { userId } = await auth();
+  const { userId } = await getSession();
   const { id } = await params;
   await connectDB();
 

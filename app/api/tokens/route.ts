@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/session";
 import { connectDB } from "@/lib/db";
 import { ApiToken } from "@/models/ApiToken";
 import bcrypt from "bcryptjs";
@@ -7,7 +7,7 @@ import crypto from "crypto";
 
 // GET — list tokens for current user
 export async function GET() {
-  const { userId } = await auth();
+  const { userId } = await getSession();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   await connectDB();
@@ -17,7 +17,7 @@ export async function GET() {
 
 // POST — generate a new token
 export async function POST(req: NextRequest) {
-  const { userId } = await auth();
+  const { userId } = await getSession();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { label } = await req.json();
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
 // DELETE — revoke a token by id
 export async function DELETE(req: NextRequest) {
-  const { userId } = await auth();
+  const { userId } = await getSession();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await req.json();

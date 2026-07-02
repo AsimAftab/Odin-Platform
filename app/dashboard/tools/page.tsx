@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/session";
 import { connectDB } from "@/lib/db";
 import { Snapshot } from "@/models/Snapshot";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,7 @@ const SOURCE_COLORS: Record<string, string> = {
 };
 
 export default async function ToolsPage() {
-  const { userId } = await auth();
+  const { userId } = await getSession();
   await connectDB();
 
   const snap = await Snapshot.findOne({ userId })
