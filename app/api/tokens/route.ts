@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { connectDB } from "@/lib/db";
 import { ApiToken } from "@/models/ApiToken";
-import bcrypt from "bcryptjs";
-import crypto from "crypto";
+import { mintApiToken } from "@/lib/mint-token";
 
 // GET — list tokens for current user
 export async function GET() {
@@ -25,12 +24,8 @@ export async function POST(req: NextRequest) {
 
   await connectDB();
 
-  const raw = `odin_${crypto.randomBytes(32).toString("hex")}`;
-  const tokenHash = await bcrypt.hash(raw, 12);
-
-  await ApiToken.create({ userId, label, tokenHash });
-
   // Return raw token once — never stored in plaintext
+  const raw = await mintApiToken(userId, label);
   return NextResponse.json({ token: raw, label });
 }
 
