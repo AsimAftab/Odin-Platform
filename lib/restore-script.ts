@@ -35,6 +35,17 @@ const SOURCE_TO_MANAGER: Record<string, string> = {
   cargo: "cargo",
 };
 
+// Manager name -> the executable to probe for before running its section.
+// Chocolatey's shim is `choco`, not the manager name.
+const MANAGER_EXECUTABLE: Record<string, string> = {
+  winget: "winget",
+  chocolatey: "choco",
+  scoop: "scoop",
+  npm: "npm",
+  pip: "pip",
+  cargo: "cargo",
+};
+
 function psEscape(value: string): string {
   // Single-quoted PowerShell string: escape embedded single quotes by doubling.
   return value.replace(/'/g, "''");
@@ -77,33 +88,58 @@ export function buildRestoreScript(snap: SnapshotLike): string {
   for (const [source, pkgs] of Object.entries(bySource)) {
     const manager = SOURCE_TO_MANAGER[source];
     lines.push(`# ${source} (${pkgs.length})`);
-    for (const p of pkgs) {
-      if (!manager) {
+
+    if (!manager) {
+      for (const p of pkgs) {
         lines.push(`# (manual) ${p.name} ${p.version ?? ""}`.trimEnd());
-        continue;
       }
-      lines.push(buildCommand(manager, p.id ?? p.name));
+      lines.push("");
+      continue;
     }
+
+    // Skip the whole section gracefully if the manager isn't installed on
+    // this machine, instead of letting PowerShell print a wall of
+    // "term not recognized" errors for every package.
+    const exe = MANAGER_EXECUTABLE[manager];
+    lines.push(`if (Get-Command ${exe} -ErrorAction SilentlyContinue) {`);
+    for (const p of pkgs) {
+      lines.push(`  ${buildCommand(manager, p.id ?? p.name)}`);
+    }
+    lines.push(`} else {`);
+    lines.push(
+      `  Write-Host "  ! ${exe} not found — skipping ${pkgs.length} ${source} package(s)"`
+    );
+    lines.push(`}`);
     lines.push("");
   }
 
   // VS Code extensions.
   if (extensions.length) {
     lines.push("# --- VS Code extensions ---");
+    lines.push("if (Get-Command code -ErrorAction SilentlyContinue) {");
     for (const e of extensions) {
-      lines.push(`code --install-extension ${e.identifier}`);
+      lines.push(`  code --install-extension ${e.identifier}`);
     }
+    lines.push("} else {");
+    lines.push(
+      `  Write-Host "  ! VS Code (code) not found — skipping ${extensions.length} extension(s)"`
+    );
+    lines.push("}");
     lines.push("");
   }
 
   // Git global config.
   if (gitEntries.length) {
     lines.push("# --- Git config (global) ---");
+    lines.push("if (Get-Command git -ErrorAction SilentlyContinue) {");
     for (const entry of gitEntries) {
       lines.push(
-        `git config --global '${psEscape(entry.key)}' '${psEscape(entry.value)}'`
+        `  git config --global '${psEscape(entry.key)}' '${psEscape(entry.value)}'`
       );
     }
+    lines.push("} else {");
+    lines.push('  Write-Host "  ! git not found — skipping git config"');
+    lines.push("}");
     lines.push("");
   }
 

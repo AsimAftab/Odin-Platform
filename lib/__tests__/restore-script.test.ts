@@ -40,6 +40,18 @@ describe("buildRestoreScript", () => {
     expect(script).toContain("scoop install ripgrep");
   });
 
+  test("pins winget to --source winget (avoids the msstore ambiguity bug)", () => {
+    expect(script).toContain("--source winget");
+  });
+
+  test("guards each manager section with a Get-Command check", () => {
+    expect(script).toContain("if (Get-Command winget -ErrorAction SilentlyContinue) {");
+    expect(script).toContain("if (Get-Command scoop -ErrorAction SilentlyContinue) {");
+    expect(script).toContain(
+      'Write-Host "  ! scoop not found — skipping 1 scoop package(s)"'
+    );
+  });
+
   test("manual-source packages are commented, not executed", () => {
     expect(script).toContain("# (manual) SomeApp 1.0");
     expect(script).not.toContain("manual install SomeApp");
@@ -48,6 +60,11 @@ describe("buildRestoreScript", () => {
   test("installs VS Code extensions and git config", () => {
     expect(script).toContain("code --install-extension ms-python.python");
     expect(script).toContain("git config --global 'user.name' 'Ada Lovelace'");
+  });
+
+  test("VS Code and git sections are also guarded", () => {
+    expect(script).toContain("if (Get-Command code -ErrorAction SilentlyContinue) {");
+    expect(script).toContain("if (Get-Command git -ErrorAction SilentlyContinue) {");
   });
 
   test("sets non-secret env vars but redacts secret-looking ones", () => {

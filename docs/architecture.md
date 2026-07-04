@@ -23,11 +23,15 @@ MongoDB/Mongoose 9 · Tailwind v4 · shadcn on `@base-ui/react`.
    - `proxy.ts` guards `/dashboard` with an optimistic cookie check (no DB call,
      edge-safe) and redirects to `/sign-in`. API routes self-guard via
      `getSession()` returning 401.
-2. **Bearer API token (CLI).** `POST /api/ingest` authenticates via
-   `validateApiToken()` (`lib/api-token.ts`). Tokens are minted as
-   `odin_<keyId>_<secret>` (`lib/mint-token.ts`), returned once, and stored only
-   as a bcrypt hash plus the public `keyId`. Validation looks the hash up by
-   `keyId` in O(1); only this format is accepted.
+2. **Bearer API token (CLI).** `POST /api/ingest`, `GET /api/cli/me`, and
+   `GET /api/snapshots/[id]` all authenticate via `validateApiToken()`
+   (`lib/api-token.ts`). Tokens are minted as `odin_<keyId>_<secret>`
+   (`lib/mint-token.ts`), returned once, and stored only as a bcrypt hash plus
+   the public `keyId`. Validation looks the hash up by `keyId` in O(1); only
+   this format is accepted. `GET /api/snapshots/[id]` is dual-auth — it accepts
+   either a Bearer token (CLI, e.g. `odin restore <snapshot-id>` pulling a
+   platform-hosted snapshot) or a session (dashboard); only the Bearer path is
+   rate-limited, since dashboard browsing shouldn't be capped.
 
 Public routes (no session): `/`, `/sign-in`, `/sign-up`, `/api/auth/*`,
 `/api/ingest`, `/api/catalog`, `/activate`, `/api/device/*`. Only `/dashboard` is

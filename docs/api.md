@@ -53,7 +53,7 @@ Identity probe. **Auth:** Bearer token. Returns the connected account email.
 | --- | --- | --- |
 | `/api/tokens` | GET / POST / DELETE | List, mint (returns raw once), revoke API tokens |
 | `/api/snapshots` | GET | Paginated snapshot list (`?page`, `?limit≤50`, `?machineId`) → `{ items, total, page, limit }` |
-| `/api/snapshots/[id]` | GET / DELETE | Fetch or delete one snapshot (ownership-checked) |
+| `/api/snapshots/[id]` | GET / DELETE | Fetch or delete one snapshot (ownership-checked). **GET accepts either a session or a Bearer token** — the Odin CLI uses this to pull a platform-hosted snapshot directly (`odin restore <snapshot-id>`) when it isn't in local history. Bearer requests are rate-limited per user+IP. |
 | `/api/snapshots/[id]/export` | GET | Download a PowerShell restore script (`text/plain` attachment) |
 | `/api/snapshots/diff` | GET | Diff two snapshots (`?a=&b=`, both owned) → `{ diff }` |
 | `/api/machines` | GET | List the user's machines |
