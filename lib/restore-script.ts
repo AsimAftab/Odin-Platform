@@ -51,6 +51,16 @@ function psEscape(value: string): string {
   return value.replace(/'/g, "''");
 }
 
+// Package/extension ids are interpolated bare into executable script blocks, so
+// they must not carry PowerShell metacharacters. Legitimate ids from every
+// supported manager match this set; anything else (corrupt data or an injection
+// attempt via a crafted snapshot) is skipped with a comment instead of run.
+const SAFE_ID = /^[A-Za-z0-9._+@/:-]+$/;
+
+function isSafeId(id: string): boolean {
+  return SAFE_ID.test(id);
+}
+
 export function buildRestoreScript(snap: SnapshotLike): string {
   const hostname =
     (snap.machine as { hostname?: string } | undefined)?.hostname ?? "unknown";
@@ -72,6 +82,16 @@ export function buildRestoreScript(snap: SnapshotLike): string {
   lines.push("# rewrites git config and user environment variables. Secret-looking");
   lines.push("# env vars are commented out — fill them in yourself.");
   lines.push('$ErrorActionPreference = "Continue"');
+  lines.push("");
+  // Failure tracking: every install step runs through Invoke-OdinStep so a
+  // non-zero exit is collected into $failed and summarized at the end instead
+  // of scrolling away.
+  lines.push("$failed = @()");
+  lines.push("$missingManagers = @()");
+  lines.push("function Invoke-OdinStep([string]$Label, [scriptblock]$Cmd) {");
+  lines.push("  & $Cmd");
+  lines.push("  if ($LASTEXITCODE -ne 0) { $script:failed += $Label }");
+  lines.push("}");
   lines.push("");
 
   // Packages grouped by source.
@@ -103,12 +123,20 @@ export function buildRestoreScript(snap: SnapshotLike): string {
     const exe = MANAGER_EXECUTABLE[manager];
     lines.push(`if (Get-Command ${exe} -ErrorAction SilentlyContinue) {`);
     for (const p of pkgs) {
-      lines.push(`  ${buildCommand(manager, p.id ?? p.name)}`);
+      const id = p.id ?? p.name;
+      if (!isSafeId(id)) {
+        lines.push(`  # (skipped — id contains unsafe characters) ${psEscape(id)}`);
+        continue;
+      }
+      lines.push(
+        `  Invoke-OdinStep '${psEscape(`${id} (${source})`)}' { ${buildCommand(manager, id)} }`
+      );
     }
     lines.push(`} else {`);
     lines.push(
       `  Write-Host "  ! ${exe} not found — skipping ${pkgs.length} ${source} package(s)"`
     );
+    lines.push(`  $missingManagers += "${exe} (${pkgs.length} ${source} package(s))"`);
     lines.push(`}`);
     lines.push("");
   }
@@ -118,12 +146,21 @@ export function buildRestoreScript(snap: SnapshotLike): string {
     lines.push("# --- VS Code extensions ---");
     lines.push("if (Get-Command code -ErrorAction SilentlyContinue) {");
     for (const e of extensions) {
-      lines.push(`  code --install-extension ${e.identifier}`);
+      if (!isSafeId(e.identifier)) {
+        lines.push(
+          `  # (skipped — id contains unsafe characters) ${psEscape(e.identifier)}`
+        );
+        continue;
+      }
+      lines.push(
+        `  Invoke-OdinStep '${psEscape(`${e.identifier} (vscode)`)}' { code --install-extension ${e.identifier} }`
+      );
     }
     lines.push("} else {");
     lines.push(
       `  Write-Host "  ! VS Code (code) not found — skipping ${extensions.length} extension(s)"`
     );
+    lines.push(`  $missingManagers += "code (${extensions.length} extension(s))"`);
     lines.push("}");
     lines.push("");
   }
@@ -134,11 +171,12 @@ export function buildRestoreScript(snap: SnapshotLike): string {
     lines.push("if (Get-Command git -ErrorAction SilentlyContinue) {");
     for (const entry of gitEntries) {
       lines.push(
-        `  git config --global '${psEscape(entry.key)}' '${psEscape(entry.value)}'`
+        `  Invoke-OdinStep '${psEscape(`git ${entry.key}`)}' { git config --global '${psEscape(entry.key)}' '${psEscape(entry.value)}' }`
       );
     }
     lines.push("} else {");
     lines.push('  Write-Host "  ! git not found — skipping git config"');
+    lines.push('  $missingManagers += "git (config)"');
     lines.push("}");
     lines.push("");
   }
@@ -148,7 +186,9 @@ export function buildRestoreScript(snap: SnapshotLike): string {
     lines.push("# --- User environment variables ---");
     for (const v of envVars) {
       const value = v.value ?? "";
-      if (isSecret(v.name, value)) {
+      if (!isSafeId(v.name)) {
+        lines.push(`# (skipped — name contains unsafe characters) ${psEscape(v.name)}`);
+      } else if (isSecret(v.name, value)) {
         lines.push(`# setx ${v.name} '<REDACTED — set manually>'`);
       } else {
         lines.push(`setx ${v.name} '${psEscape(value)}'`);
@@ -157,6 +197,19 @@ export function buildRestoreScript(snap: SnapshotLike): string {
     lines.push("");
   }
 
+  // End-of-run summary: mirrors the CLI's restore report — what failed and
+  // which managers were missing, so problems don't scroll away.
+  lines.push('Write-Host ""');
+  lines.push('Write-Host "== Restore summary =="');
+  lines.push("if ($missingManagers.Count) {");
+  lines.push('  Write-Host ("  managers missing: " + ($missingManagers -join ", "))');
+  lines.push("}");
+  lines.push("if ($failed.Count) {");
+  lines.push('  Write-Host ("  failed (" + $failed.Count + "):")');
+  lines.push('  $failed | ForEach-Object { Write-Host "    - $_" }');
+  lines.push("} else {");
+  lines.push('  Write-Host "  no failures"');
+  lines.push("}");
   lines.push('Write-Host "Odin restore complete. Restart your shell for env changes."');
   lines.push("");
   return lines.join("\n");

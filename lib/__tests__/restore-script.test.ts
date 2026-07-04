@@ -67,6 +67,38 @@ describe("buildRestoreScript", () => {
     expect(script).toContain("if (Get-Command git -ErrorAction SilentlyContinue) {");
   });
 
+  test("install steps run through Invoke-OdinStep for failure tracking", () => {
+    expect(script).toContain("function Invoke-OdinStep(");
+    expect(script).toContain("$script:failed += $Label");
+    expect(script).toContain("Invoke-OdinStep 'Git.Git (winget)'");
+    expect(script).toContain("Invoke-OdinStep 'ms-python.python (vscode)'");
+  });
+
+  test("ids with PowerShell metacharacters are skipped, never executed", () => {
+    const evil = buildRestoreScript({
+      packages: {
+        packages: [
+          { id: "bad'; Remove-Item xyz #", name: "evil", version: "1", source: "scoop" },
+        ],
+      },
+      environment: {
+        user_variables: [{ name: "BAD; NAME", value: "x", scope: "user" }],
+      },
+    });
+    expect(evil).toContain("# (skipped — id contains unsafe characters)");
+    expect(evil).toContain("# (skipped — name contains unsafe characters)");
+    expect(evil).not.toContain("Remove-Item xyz #} ");
+    expect(evil).not.toContain("scoop install bad'");
+    expect(evil).not.toContain("setx BAD; NAME");
+  });
+
+  test("missing managers are collected, and a summary prints at the end", () => {
+    expect(script).toContain("$missingManagers += ");
+    expect(script).toContain('Write-Host "== Restore summary =="');
+    expect(script).toContain('"  failed (" + $failed.Count');
+    expect(script).toContain("managers missing: ");
+  });
+
   test("sets non-secret env vars but redacts secret-looking ones", () => {
     expect(script).toContain("setx EDITOR 'code'");
     expect(script).toContain("# setx GITHUB_TOKEN '<REDACTED");
