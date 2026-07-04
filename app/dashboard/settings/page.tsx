@@ -165,7 +165,6 @@ export default function SettingsPage() {
                       {t.lastUsedAt
                         ? ` · last used ${new Date(t.lastUsedAt).toLocaleDateString()}`
                         : " · never used"}
-                      {!t.keyId && " · legacy"}
                     </p>
                   </div>
                   <Button

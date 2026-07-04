@@ -27,8 +27,7 @@ MongoDB/Mongoose 9 · Tailwind v4 · shadcn on `@base-ui/react`.
    `validateApiToken()` (`lib/api-token.ts`). Tokens are minted as
    `odin_<keyId>_<secret>` (`lib/mint-token.ts`), returned once, and stored only
    as a bcrypt hash plus the public `keyId`. Validation looks the hash up by
-   `keyId` in O(1); legacy `odin_<hex>` tokens fall back to a scan over pre-keyId
-   rows.
+   `keyId` in O(1); only this format is accepted.
 
 Public routes (no session): `/`, `/sign-in`, `/sign-up`, `/api/auth/*`,
 `/api/ingest`, `/api/catalog`, `/activate`, `/api/device/*`. Only `/dashboard` is

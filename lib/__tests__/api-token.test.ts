@@ -8,7 +8,7 @@ describe("parseTokenKeyId", () => {
     expect(parseTokenKeyId(`odin_${keyId}_${secret}`)).toBe(keyId);
   });
 
-  test("returns null for a legacy token (no keyId segment)", () => {
+  test("returns null for the old unkeyed shape (now rejected)", () => {
     expect(parseTokenKeyId(`odin_${"a".repeat(64)}`)).toBeNull();
   });
 

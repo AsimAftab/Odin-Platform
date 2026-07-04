@@ -17,8 +17,7 @@ This is a young project without formal LTS branches; security fixes land on
 - **API tokens** are shown to the user exactly once and stored only as bcrypt
   hashes (`ApiToken.tokenHash`). The raw token is never persisted. Tokens use the
   format `odin_<keyId>_<secret>`, where `keyId` is a public lookup id and the
-  secret half is what bcrypt protects. Legacy `odin_<hex>` tokens (no keyId)
-  still validate via a fallback path — **rotate them** to get O(1) lookups.
+  secret half is what bcrypt protects. Only this format is accepted.
 - **Sessions** are signed with `BETTER_AUTH_SECRET` (self-hosted Better Auth).
 - **Data ownership**: every record is scoped by the authenticated `userId`. There
   is no cross-user access; all queries filter by `userId`, and exports/diffs
