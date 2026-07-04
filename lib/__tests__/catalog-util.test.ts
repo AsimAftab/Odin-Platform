@@ -12,9 +12,9 @@ describe("slugify", () => {
 });
 
 describe("buildCommand", () => {
-  test("winget uses -e with agreement flags", () => {
+  test("winget uses -e, pins --source winget, and agreement flags", () => {
     expect(buildCommand("winget", "Git.Git")).toBe(
-      "winget install --id Git.Git -e --accept-package-agreements --accept-source-agreements"
+      "winget install --id Git.Git -e --source winget --accept-package-agreements --accept-source-agreements"
     );
   });
 

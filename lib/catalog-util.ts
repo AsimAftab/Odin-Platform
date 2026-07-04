@@ -28,7 +28,12 @@ export function buildCommand(manager: string, packageId: string): string {
   const id = packageId.trim();
   switch (manager) {
     case "winget":
-      return `winget install --id ${id} -e --accept-package-agreements --accept-source-agreements`;
+      // --source winget pins the query to the winget catalog only. Without it,
+      // winget also queries the msstore source; on machines where that source
+      // is unreachable/misconfigured (seen on some Windows Server AMIs), it
+      // fails the whole lookup and forces an interactive "--source" prompt
+      // even though --id + -e already fully disambiguate the package.
+      return `winget install --id ${id} -e --source winget --accept-package-agreements --accept-source-agreements`;
     case "chocolatey":
       return `choco install ${id} -y`;
     case "scoop":
