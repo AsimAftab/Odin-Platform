@@ -7,14 +7,17 @@ if (!MONGODB_URI) {
 }
 
 // Cached connection for serverless environments
-let cached = (global as any).mongoose as {
+interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
+}
+
+const globalWithMongoose = global as typeof globalThis & {
+  mongoose?: MongooseCache;
 };
 
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
-}
+const cached: MongooseCache =
+  globalWithMongoose.mongoose ?? (globalWithMongoose.mongoose = { conn: null, promise: null });
 
 export async function connectDB() {
   if (cached.conn) return cached.conn;

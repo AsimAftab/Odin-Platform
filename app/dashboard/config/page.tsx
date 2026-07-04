@@ -4,6 +4,11 @@ import { Snapshot } from "@/models/Snapshot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SlidersHorizontal, GitBranch, Terminal, Code } from "lucide-react";
+import type {
+  EnvironmentSection,
+  GitSection,
+  VsCodeSection,
+} from "@/types/snapshot";
 
 export default async function ConfigPage() {
   const { userId } = await getSession();
@@ -13,15 +18,20 @@ export default async function ConfigPage() {
     .sort({ capturedAt: -1 })
     .lean();
 
-  const gitEntries: any[] = (snap?.git as any)?.entries ?? [];
-  const envVars: any[] = (snap?.environment as any)?.user_variables ?? [];
-  const psProfile = (snap?.environment as any)?.powershell_profile;
-  const extensions: any[] = (snap?.vscode as any)?.extensions ?? [];
+  const environment = snap?.environment as EnvironmentSection | undefined;
+  const gitEntries = (snap?.git as GitSection | undefined)?.entries ?? [];
+  // PATH-type variables live on the Health page; exclude them here so the
+  // count and list agree (and match the snapshot detail stat).
+  const envVars = (environment?.user_variables ?? []).filter(
+    (v) => !v.name?.toUpperCase().includes("PATH")
+  );
+  const psProfile = environment?.powershell_profile;
+  const extensions = (snap?.vscode as VsCodeSection | undefined)?.extensions ?? [];
 
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-yellow-400">Config Vault</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-amber-400">Config Vault</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Stored configuration from your latest snapshot
         </p>
@@ -36,7 +46,7 @@ export default async function ConfigPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-1">
-            {gitEntries.map((entry: any) => (
+            {gitEntries.map((entry) => (
               <div key={entry.key} className="flex items-center gap-3 py-1.5 border-b border-border/40 text-sm">
                 <span className="font-mono text-xs text-muted-foreground w-48 shrink-0">{entry.key}</span>
                 <span className="font-mono text-xs truncate">{entry.value}</span>
@@ -58,7 +68,7 @@ export default async function ConfigPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-            {extensions.map((ext: any) => (
+            {extensions.map((ext) => (
               <div key={ext.identifier} className="flex items-center justify-between py-1.5 border-b border-border/40 text-sm">
                 <span className="font-mono text-xs truncate max-w-[70%]">{ext.identifier}</span>
                 <Badge variant="outline" className="text-xs font-mono">{ext.version ?? "—"}</Badge>
@@ -97,9 +107,7 @@ export default async function ConfigPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-1 max-h-64 overflow-y-auto">
-            {envVars
-              .filter((v: any) => !v.name.toUpperCase().includes("PATH"))
-              .map((v: any) => (
+            {envVars.map((v) => (
                 <div key={v.name} className="flex items-center gap-3 py-1.5 border-b border-border/40 text-sm">
                   <span className="font-mono text-xs text-muted-foreground w-40 shrink-0">{v.name}</span>
                   <span className="font-mono text-xs truncate text-foreground/70">{v.value}</span>

@@ -3,7 +3,31 @@ import { connectDB } from "@/lib/db";
 import { Snapshot } from "@/models/Snapshot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { HeartPulse, AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { HeartPulse, AlertTriangle, CheckCircle } from "lucide-react";
+import { SEVERITY_COLORS } from "@/lib/status-colors";
+import type {
+  DeveloperTool,
+  EnvironmentSection,
+  MachineSection,
+  PathEntry,
+} from "@/types/snapshot";
+
+// Essential tools checked against the snapshot's developer_tools. Matched by
+// executable stem (case-insensitive) — never by display name, which varies
+// between CLI versions ("VS Code" vs "Visual Studio Code").
+const ESSENTIAL_TOOLS: { label: string; executables: string[] }[] = [
+  { label: "Git", executables: ["git"] },
+  { label: "VS Code", executables: ["code"] },
+  { label: "PowerShell", executables: ["pwsh", "powershell"] },
+];
+
+function toolDetected(devTools: DeveloperTool[], executables: string[]) {
+  return devTools.some(
+    (t) =>
+      t.path &&
+      executables.includes((t.executable || t.name).toLowerCase().trim())
+  );
+}
 
 export default async function HealthPage() {
   const { userId } = await getSession();
@@ -13,16 +37,16 @@ export default async function HealthPage() {
     .sort({ capturedAt: -1 })
     .lean();
 
-  const machine = snap?.machine as any;
-  const environment = snap?.environment as any;
-  const devTools: any[] = machine?.developer_tools ?? [];
-  const pathEntries: any[] = environment?.path_entries ?? [];
+  const machine = snap?.machine as MachineSection | undefined;
+  const environment = snap?.environment as EnvironmentSection | undefined;
+  const devTools: DeveloperTool[] = machine?.developer_tools ?? [];
+  const pathEntries: PathEntry[] = environment?.path_entries ?? [];
 
   const brokenPaths = pathEntries.filter((p) => !p.exists);
   const installedTools = devTools.filter((t) => t.path);
-  const missingTools = ["Git", "VS Code", "PowerShell"].filter(
-    (name) => !devTools.find((t) => t.name === name && t.path)
-  );
+  const missingTools = ESSENTIAL_TOOLS.filter(
+    (tool) => !toolDetected(devTools, tool.executables)
+  ).map((tool) => tool.label);
 
   const findings = [
     ...brokenPaths.map((p) => ({
@@ -42,20 +66,16 @@ export default async function HealthPage() {
 
   const severityIcon = {
     error: <AlertTriangle className="w-4 h-4 text-red-400" />,
-    warning: <AlertTriangle className="w-4 h-4 text-yellow-400" />,
+    warning: <AlertTriangle className="w-4 h-4 text-amber-400" />,
     info: <CheckCircle className="w-4 h-4 text-green-400" />,
   };
 
-  const severityBadge = {
-    error: "bg-red-500/10 text-red-400 border-red-500/20",
-    warning: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-    info: "bg-green-500/10 text-green-400 border-green-500/20",
-  };
+  const severityBadge = SEVERITY_COLORS;
 
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-yellow-400">Health</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-amber-400">Health</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Environment diagnostics from the latest snapshot
         </p>
@@ -71,7 +91,7 @@ export default async function HealthPage() {
         </Card>
         <Card>
           <CardContent className="py-3 px-4">
-            <p className="text-2xl font-bold text-yellow-400">{brokenPaths.length}</p>
+            <p className="text-2xl font-bold text-amber-400">{brokenPaths.length}</p>
             <p className="text-xs text-muted-foreground">Broken PATH entries</p>
           </CardContent>
         </Card>
@@ -113,11 +133,11 @@ export default async function HealthPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-1 max-h-64 overflow-y-auto">
-            {pathEntries.map((entry: any, i: number) => (
+            {pathEntries.map((entry, i) => (
               <div key={i} className="flex items-center gap-2 py-1 text-xs font-mono border-b border-border/40">
                 {entry.exists
                   ? <CheckCircle className="w-3 h-3 text-green-400 shrink-0" />
-                  : <AlertTriangle className="w-3 h-3 text-yellow-400 shrink-0" />}
+                  : <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0" />}
                 <span className={entry.exists ? "" : "text-muted-foreground line-through"}>
                   {entry.value}
                 </span>

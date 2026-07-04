@@ -12,6 +12,7 @@ export interface ISnapshot extends Document {
   packages: Record<string, unknown>;
   vscode: Record<string, unknown>;
   git: Record<string, unknown>;
+  profiles?: Record<string, unknown>;
   lockSha256: string;
   createdAt: Date;
 }
@@ -29,6 +30,8 @@ const SnapshotSchema = new Schema<ISnapshot>(
     packages: { type: Schema.Types.Mixed, required: true },
     vscode: { type: Schema.Types.Mixed, required: true },
     git: { type: Schema.Types.Mixed, required: true },
+    // Optional Asgard profiles summary (CLIs >= 0.8 send it).
+    profiles: { type: Schema.Types.Mixed },
     lockSha256: { type: String, required: true },
   },
   { timestamps: true }

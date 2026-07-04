@@ -3,6 +3,8 @@ export const INSTALL_MANAGERS = [
   "chocolatey",
   "scoop",
   "npm",
+  "pip",
+  "cargo",
   "manual",
 ] as const;
 
@@ -33,6 +35,10 @@ export function buildCommand(manager: string, packageId: string): string {
       return `scoop install ${id}`;
     case "npm":
       return `npm install -g ${id}`;
+    case "pip":
+      return `pip install ${id}`;
+    case "cargo":
+      return `cargo install ${id}`;
     case "manual":
     default:
       return id;

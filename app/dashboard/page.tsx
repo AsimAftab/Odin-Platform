@@ -4,7 +4,8 @@ import { Machine } from "@/models/Machine";
 import { Snapshot } from "@/models/Snapshot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Monitor, Package, Clock, HeartPulse } from "lucide-react";
+import { Monitor, Package, Clock, Puzzle } from "lucide-react";
+import type { PackagesSection, VsCodeSection } from "@/types/snapshot";
 
 export default async function DashboardPage() {
   const { userId } = await getSession();
@@ -22,7 +23,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-yellow-400">ᚢ Overview</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-amber-400">ᚢ Overview</h1>
         <p className="text-muted-foreground text-sm mt-1">
           {machines.length} machine{machines.length !== 1 ? "s" : ""} connected
         </p>
@@ -33,9 +34,9 @@ export default async function DashboardPage() {
           <CardContent className="py-12 text-center text-muted-foreground">
             <p className="text-lg font-medium mb-2">No machines connected yet</p>
             <p className="text-sm">
-              Run <code className="bg-muted px-1 rounded">odin config push</code> on your
-              machine, then <code className="bg-muted px-1 rounded">odin snapshot</code> to
-              send your first snapshot.
+              Run <code className="bg-muted px-1 rounded">odin login</code> on your machine,
+              then <code className="bg-muted px-1 rounded">odin sync</code> to send your
+              first snapshot.
             </p>
           </CardContent>
         </Card>
@@ -44,18 +45,20 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {machines.map((machine, i) => {
           const snap = latestSnapshots[i];
-          const pkgCount = (snap?.packages as any)?.packages?.length ?? 0;
-          const extCount = (snap?.vscode as any)?.extensions?.length ?? 0;
+          const pkgCount =
+            (snap?.packages as PackagesSection | undefined)?.packages?.length ?? 0;
+          const extCount =
+            (snap?.vscode as VsCodeSection | undefined)?.extensions?.length ?? 0;
           const capturedAt = snap?.capturedAt
             ? new Date(snap.capturedAt).toLocaleString()
             : "No snapshot yet";
 
           return (
-            <Card key={machine._id.toString()} className="hover:border-yellow-400/50 transition-colors">
+            <Card key={machine._id.toString()} className="hover:border-amber-400/50 transition-colors">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <Monitor className="w-4 h-4 text-yellow-400" />
+                    <Monitor className="w-4 h-4 text-amber-400" />
                     {machine.hostname}
                   </CardTitle>
                   <Badge variant="outline" className="text-xs">
@@ -71,7 +74,7 @@ export default async function DashboardPage() {
                     <span>{pkgCount} packages</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
-                    <HeartPulse className="w-3 h-3" />
+                    <Puzzle className="w-3 h-3" />
                     <span>{extCount} extensions</span>
                   </div>
                 </div>
