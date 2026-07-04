@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { DeviceCode } from "@/models/DeviceCode";
 import { mintApiToken } from "@/lib/mint-token";
+import { checkRateLimit, clientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 // OAuth 2.0 Device Authorization Grant (RFC 8628) — step 3. The CLI polls this
 // (unauthenticated, it holds the device_code secret) until the user approves.
@@ -10,6 +11,11 @@ import { mintApiToken } from "@/lib/mint-token";
 // `invalid_grant`) tell it to stop.
 export async function POST(req: NextRequest) {
   try {
+    // Cap poll volume per IP as a backstop; per-device_code pacing is enforced
+    // below via the RFC 8628 `interval` (slow_down).
+    const ipLimit = await checkRateLimit("device-token-ip", clientIp(req), 120, 60);
+    if (!ipLimit.ok) return rateLimitResponse(ipLimit);
+
     await connectDB();
 
     const body = await req.json().catch(() => ({}));

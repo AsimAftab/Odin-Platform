@@ -1,29 +1,17 @@
-import { getSession } from "@/lib/session";
+import { requireAuth } from "@/lib/session";
 import { connectDB } from "@/lib/db";
 import { Machine } from "@/models/Machine";
-import { Snapshot } from "@/models/Snapshot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Monitor, Clock, Package, Code } from "lucide-react";
-import type {
-  MachineSection,
-  PackagesSection,
-  VsCodeSection,
-} from "@/types/snapshot";
+import { latestSnapshotSummaries } from "@/lib/snapshot-queries";
 
 export default async function MachinesPage() {
-  const { userId } = await getSession();
+  const userId = await requireAuth();
   await connectDB();
 
   const machines = await Machine.find({ userId }).sort({ lastSeenAt: -1 }).lean();
-  const latestSnapshots = await Promise.all(
-    machines.map((m) =>
-      Snapshot.findOne({ machineId: m._id })
-        .sort({ capturedAt: -1 })
-        .select("capturedAt packages vscode machine")
-        .lean()
-    )
-  );
+  const summaries = await latestSnapshotSummaries(userId);
 
   return (
     <div className="space-y-6">
@@ -43,14 +31,11 @@ export default async function MachinesPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {machines.map((machine, i) => {
-          const snap = latestSnapshots[i];
-          const pkgCount =
-            (snap?.packages as PackagesSection | undefined)?.packages?.length ?? 0;
-          const extCount =
-            (snap?.vscode as VsCodeSection | undefined)?.extensions?.length ?? 0;
-          const devTools =
-            (snap?.machine as MachineSection | undefined)?.developer_tools ?? [];
+        {machines.map((machine) => {
+          const summary = summaries.get(machine._id.toString());
+          const pkgCount = summary?.pkgCount ?? 0;
+          const extCount = summary?.extCount ?? 0;
+          const devTools = summary?.developerTools ?? [];
           const detectedTools = devTools.filter((t) => t.path).map((t) => t.name);
 
           return (

@@ -27,6 +27,16 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // refresh daily
   },
+  // Throttle the auth endpoints (sign-in/up, etc.) against credential-stuffing
+  // and abuse. Enabled in all environments (Better Auth defaults it to
+  // production-only). The in-memory store is fine here — a per-instance cap
+  // still meaningfully bounds a single node; the device/ingest routes use the
+  // Mongo-backed limiter in `lib/rate-limit.ts` for cross-instance limits.
+  rateLimit: {
+    enabled: true,
+    window: 60, // seconds
+    max: 30, // requests per window per IP
+  },
   // Keeps set-cookie headers working from server actions / route handlers.
   plugins: [nextCookies()],
 });
