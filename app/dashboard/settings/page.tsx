@@ -51,8 +51,10 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-xs text-muted-foreground">
-            Tokens are shown once. Copy it and run{" "}
-            <code className="bg-muted px-1 rounded">odin config push</code> to connect your CLI.
+            The easiest way to connect is{" "}
+            <code className="bg-muted px-1 rounded">odin login</code> — it opens your browser to
+            approve this machine, no copy/paste. Generate a token below only for CI or headless
+            setups. Tokens are shown once.
           </p>
           <div className="flex gap-2">
             <Input
@@ -83,16 +85,24 @@ export default function SettingsPage() {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm">CLI Setup</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-muted-foreground">
-          <p>After generating a token, connect your CLI:</p>
-          <pre className="bg-muted rounded-md p-3 text-xs font-mono text-foreground overflow-x-auto">
-{`odin config push
-# Enter platform URL: https://your-platform.vercel.app
-# Enter API token: odin_xxxx...`}
-          </pre>
+        <CardContent className="space-y-4 text-sm text-muted-foreground">
+          <div>
+            <p className="mb-2 font-medium text-foreground">Recommended — browser login</p>
+            <pre className="bg-muted rounded-md p-3 text-xs font-mono text-foreground overflow-x-auto">
+{`odin login --url https://your-platform.vercel.app
+# approve this machine in the browser`}
+            </pre>
+          </div>
+          <div>
+            <p className="mb-2 font-medium text-foreground">CI / headless — API token</p>
+            <pre className="bg-muted rounded-md p-3 text-xs font-mono text-foreground overflow-x-auto">
+{`odin config platform --url https://your-platform.vercel.app --token odin_xxxx...`}
+            </pre>
+          </div>
           <p>
-            Every <code className="bg-muted px-1 rounded text-foreground">odin snapshot</code> will
-            then automatically push data to this platform in the background.
+            Once connected, Odin offers to upload your existing snapshots and enable auto-upload,
+            so every <code className="bg-muted px-1 rounded text-foreground">odin snapshot</code>{" "}
+            pushes to this platform in the background.
           </p>
         </CardContent>
       </Card>
