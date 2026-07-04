@@ -6,6 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Clock, Tag, Monitor } from "lucide-react";
 import Link from "next/link";
+import type {
+  EnvironmentSection,
+  GitSection,
+  InstalledPackage,
+  MachineSection,
+  PackagesSection,
+  VsCodeSection,
+} from "@/types/snapshot";
 
 export default async function SnapshotDetailPage({
   params,
@@ -19,18 +27,23 @@ export default async function SnapshotDetailPage({
   const snap = await Snapshot.findOne({ snapshotId: id, userId }).lean();
   if (!snap) notFound();
 
-  const machine = snap.machine as any;
-  const packages = (snap.packages as any)?.packages ?? [];
-  const extensions = (snap.vscode as any)?.extensions ?? [];
-  const gitEntries = (snap.git as any)?.entries ?? [];
-  const envVars = (snap.environment as any)?.user_variables ?? [];
+  const machine = snap.machine as MachineSection | undefined;
+  const packages = (snap.packages as PackagesSection | undefined)?.packages ?? [];
+  const extensions = (snap.vscode as VsCodeSection | undefined)?.extensions ?? [];
+  const gitEntries = (snap.git as GitSection | undefined)?.entries ?? [];
+  // Count matches the Config page: PATH-type variables excluded.
+  const envVars = (
+    (snap.environment as EnvironmentSection | undefined)?.user_variables ?? []
+  ).filter((v) => !v.name.toUpperCase().includes("PATH"));
 
-  const bySource = packages.reduce((acc: Record<string, any[]>, pkg: any) => {
-    const src = pkg.source ?? "unknown";
-    if (!acc[src]) acc[src] = [];
-    acc[src].push(pkg);
-    return acc;
-  }, {});
+  const bySource = packages.reduce<Record<string, InstalledPackage[]>>(
+    (acc, pkg) => {
+      const src = pkg.source ?? "unknown";
+      (acc[src] ??= []).push(pkg);
+      return acc;
+    },
+    {}
+  );
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -39,7 +52,7 @@ export default async function SnapshotDetailPage({
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div>
-          <h1 className="text-xl font-bold font-mono text-yellow-400">{id.slice(0, 8)}…</h1>
+          <h1 className="text-xl font-bold font-mono text-amber-400">{id.slice(0, 8)}…</h1>
           <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
             <span className="flex items-center gap-1">
               <Monitor className="w-3 h-3" /> {machine?.hostname}
@@ -67,7 +80,7 @@ export default async function SnapshotDetailPage({
         ].map(({ label, value }) => (
           <Card key={label}>
             <CardContent className="py-3 px-4">
-              <p className="text-2xl font-bold text-yellow-400">{value}</p>
+              <p className="text-2xl font-bold text-amber-400">{value}</p>
               <p className="text-xs text-muted-foreground">{label}</p>
             </CardContent>
           </Card>
@@ -80,13 +93,13 @@ export default async function SnapshotDetailPage({
           <CardTitle className="text-sm">Packages</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {Object.entries(bySource).map(([source, pkgs]: [string, any]) => (
+          {Object.entries(bySource).map(([source, pkgs]) => (
             <div key={source}>
               <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">
                 {source} ({pkgs.length})
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                {pkgs.map((pkg: any) => (
+                {pkgs.map((pkg) => (
                   <div key={pkg.id} className="flex items-center justify-between text-sm py-1 border-b border-border/50">
                     <span className="font-mono text-xs">{pkg.name}</span>
                     <Badge variant="outline" className="text-xs">{pkg.version ?? "—"}</Badge>
@@ -105,7 +118,7 @@ export default async function SnapshotDetailPage({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-            {extensions.map((ext: any) => (
+            {extensions.map((ext) => (
               <div key={ext.identifier} className="flex items-center justify-between text-sm py-1 border-b border-border/50">
                 <span className="font-mono text-xs">{ext.identifier}</span>
                 <Badge variant="outline" className="text-xs">{ext.version ?? "—"}</Badge>
@@ -122,7 +135,7 @@ export default async function SnapshotDetailPage({
         </CardHeader>
         <CardContent>
           <div className="space-y-1">
-            {gitEntries.map((entry: any) => (
+            {gitEntries.map((entry) => (
               <div key={entry.key} className="flex items-center gap-3 text-sm py-1 border-b border-border/50">
                 <span className="font-mono text-xs text-muted-foreground w-40 shrink-0">{entry.key}</span>
                 <span className="font-mono text-xs truncate">{entry.value}</span>

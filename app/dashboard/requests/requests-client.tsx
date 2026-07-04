@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { INSTALL_MANAGERS, buildCommand } from "@/lib/catalog-util";
+import { STATUS_COLORS } from "@/lib/status-colors";
 import {
   Check,
   X,
@@ -47,14 +48,8 @@ export interface ToolRequestDTO {
 
 type Status = ToolRequestDTO["status"];
 
-const STATUS_STYLE: Record<Status, string> = {
-  pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-  in_progress: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  needs_correction: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  verified: "bg-violet-500/10 text-violet-400 border-violet-500/20",
-  approved: "bg-green-500/10 text-green-400 border-green-500/20",
-  rejected: "bg-red-500/10 text-red-400 border-red-500/20",
-};
+// Shared with the tools page's "My Catalog Requests" view.
+const STATUS_STYLE: Record<Status, string> = STATUS_COLORS as Record<Status, string>;
 const STATUS_LABEL: Record<Status, string> = {
   pending: "pending",
   in_progress: "in progress",
@@ -106,7 +101,7 @@ export function RequestsClient({
             className={
               "rounded-full border px-3 py-1 text-xs font-medium transition " +
               (filter === f
-                ? "border-yellow-400/40 bg-yellow-400/10 text-yellow-300"
+                ? "border-amber-400/40 bg-amber-400/10 text-amber-300"
                 : "border-border bg-transparent text-muted-foreground hover:text-foreground")
             }
           >
@@ -376,7 +371,7 @@ function InstallRow({
         value={row.packageId}
         onChange={(e) => onChange({ ...row, packageId: e.target.value })}
         placeholder="package id (e.g. Neovim.Neovim)"
-        className="h-8 flex-1 rounded-md border border-border bg-transparent px-2.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-yellow-400/40"
+        className="h-8 flex-1 rounded-md border border-border bg-transparent px-2.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-amber-400/40"
       />
       {preview && (
         <code className="hidden max-w-[40%] truncate rounded bg-muted px-2 py-1 font-mono text-[0.65rem] text-muted-foreground md:block">
@@ -412,7 +407,7 @@ function LabeledInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-8 w-full rounded-md border border-border bg-transparent px-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-yellow-400/40"
+        className="h-8 w-full rounded-md border border-border bg-transparent px-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-amber-400/40"
       />
     </label>
   );

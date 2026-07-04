@@ -63,7 +63,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Sidebar */}
       <aside className="w-60 border-r border-border flex flex-col py-6 px-4 gap-1 shrink-0">
         <div className="flex items-center gap-2 px-2 mb-6">
-          <span className="text-xl font-bold tracking-tight text-yellow-400">ᚢ Odin</span>
+          <span className="text-xl font-bold tracking-tight text-amber-400">ᚢ Odin</span>
           <span className="text-xs text-muted-foreground mt-1">Platform</span>
         </div>
 

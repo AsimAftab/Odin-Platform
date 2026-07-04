@@ -4,13 +4,11 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Key, Copy, Trash2, Plus, Check } from "lucide-react";
+import { Key, Copy, Plus, Check } from "lucide-react";
 
 export default function SettingsPage() {
   const [label, setLabel] = useState("");
   const [newToken, setNewToken] = useState<string | null>(null);
-  const [tokens, setTokens] = useState<any[]>([]);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -38,7 +36,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-yellow-400">Settings</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-amber-400">Settings</h1>
         <p className="text-muted-foreground text-sm mt-1">Manage API tokens for CLI access</p>
       </div>
 
@@ -71,7 +69,7 @@ export default function SettingsPage() {
 
           {newToken && (
             <div className="bg-muted rounded-md p-3 flex items-center justify-between gap-3">
-              <code className="text-xs font-mono break-all text-yellow-400">{newToken}</code>
+              <code className="text-xs font-mono break-all text-amber-400">{newToken}</code>
               <Button variant="ghost" size="icon" onClick={copyToken} className="shrink-0">
                 {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
               </Button>

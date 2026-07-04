@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/db";
 import { Snapshot } from "@/models/Snapshot";
 import { Machine } from "@/models/Machine";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { Clock, Tag } from "lucide-react";
 
@@ -25,7 +25,7 @@ export default async function SnapshotsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-yellow-400">Snapshots</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-amber-400">Snapshots</h1>
         <p className="text-muted-foreground text-sm mt-1">
           {snapshots.length} snapshot{snapshots.length !== 1 ? "s" : ""} across all machines
         </p>
@@ -42,7 +42,7 @@ export default async function SnapshotsPage() {
       <div className="space-y-2">
         {snapshots.map((snap) => (
           <Link key={snap.snapshotId} href={`/dashboard/snapshots/${snap.snapshotId}`}>
-            <Card className="hover:border-yellow-400/40 transition-colors cursor-pointer">
+            <Card className="hover:border-amber-400/40 transition-colors cursor-pointer">
               <CardContent className="py-3 px-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Clock className="w-4 h-4 text-muted-foreground shrink-0" />

@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { machine, environment, packages, vscode, git, lock } = body;
+    const { machine, environment, packages, vscode, git, lock, profiles, tag } = body;
 
     if (!machine || !environment || !packages || !vscode || !git || !lock) {
       return NextResponse.json({ error: "Missing snapshot fields" }, { status: 400 });
@@ -48,13 +48,15 @@ export async function POST(req: NextRequest) {
         machineId: machineDoc._id,
         userId,
         capturedAt: new Date(machine.captured_at),
-        tag: undefined,
+        tag: typeof tag === "string" && tag.trim() ? tag.trim() : undefined,
         schemaVersion: lock.schema_version ?? 1,
         machine,
         environment,
         packages,
         vscode,
         git,
+        // Optional Asgard profiles summary (CLIs >= 0.8 send it).
+        profiles: profiles ?? undefined,
         lockSha256: lock.snapshot_id, // use snapshot_id as integrity ref
       },
       { upsert: true, new: true }

@@ -5,6 +5,11 @@ import { Snapshot } from "@/models/Snapshot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Monitor, Clock, Package, Code } from "lucide-react";
+import type {
+  MachineSection,
+  PackagesSection,
+  VsCodeSection,
+} from "@/types/snapshot";
 
 export default async function MachinesPage() {
   const { userId } = await getSession();
@@ -23,7 +28,7 @@ export default async function MachinesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-yellow-400">Machines</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-amber-400">Machines</h1>
         <p className="text-muted-foreground text-sm mt-1">
           {machines.length} machine{machines.length !== 1 ? "s" : ""} connected to your account
         </p>
@@ -32,7 +37,7 @@ export default async function MachinesPage() {
       {machines.length === 0 && (
         <Card className="border-dashed">
           <CardContent className="py-12 text-center text-muted-foreground">
-            No machines yet. Run <code className="bg-muted px-1 rounded">odin config push</code> to connect one.
+            No machines yet. Run <code className="bg-muted px-1 rounded">odin login</code> to connect one.
           </CardContent>
         </Card>
       )}
@@ -40,17 +45,20 @@ export default async function MachinesPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {machines.map((machine, i) => {
           const snap = latestSnapshots[i];
-          const pkgCount = (snap?.packages as any)?.packages?.length ?? 0;
-          const extCount = (snap?.vscode as any)?.extensions?.length ?? 0;
-          const devTools: any[] = (snap?.machine as any)?.developer_tools ?? [];
+          const pkgCount =
+            (snap?.packages as PackagesSection | undefined)?.packages?.length ?? 0;
+          const extCount =
+            (snap?.vscode as VsCodeSection | undefined)?.extensions?.length ?? 0;
+          const devTools =
+            (snap?.machine as MachineSection | undefined)?.developer_tools ?? [];
           const detectedTools = devTools.filter((t) => t.path).map((t) => t.name);
 
           return (
-            <Card key={machine._id.toString()} className="hover:border-yellow-400/40 transition-colors">
+            <Card key={machine._id.toString()} className="hover:border-amber-400/40 transition-colors">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    <Monitor className="w-5 h-5 text-yellow-400" />
+                    <Monitor className="w-5 h-5 text-amber-400" />
                     <div>
                       <CardTitle className="text-base">{machine.hostname}</CardTitle>
                       <p className="text-xs text-muted-foreground">{machine.username}</p>
