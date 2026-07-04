@@ -4,6 +4,7 @@ import { Snapshot } from "@/models/Snapshot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SlidersHorizontal, GitBranch, Terminal, Code } from "lucide-react";
+import { EnvVarList, RevealableText } from "./vault-values";
 import type {
   EnvironmentSection,
   GitSection,
@@ -91,9 +92,7 @@ export default async function ConfigPage() {
             <p className="text-xs text-muted-foreground font-mono">{psProfile.path}</p>
           </CardHeader>
           <CardContent>
-            <pre className="text-xs font-mono bg-muted rounded-md p-3 overflow-x-auto max-h-64 whitespace-pre-wrap">
-              {psProfile.content || "(empty profile)"}
-            </pre>
+            <RevealableText content={psProfile.content ?? ""} />
           </CardContent>
         </Card>
       )}
@@ -106,14 +105,9 @@ export default async function ConfigPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-1 max-h-64 overflow-y-auto">
-            {envVars.map((v) => (
-                <div key={v.name} className="flex items-center gap-3 py-1.5 border-b border-border/40 text-sm">
-                  <span className="font-mono text-xs text-muted-foreground w-40 shrink-0">{v.name}</span>
-                  <span className="font-mono text-xs truncate text-foreground/70">{v.value}</span>
-                </div>
-              ))}
-          </div>
+          <EnvVarList
+            vars={envVars.map((v) => ({ name: v.name, value: v.value ?? "" }))}
+          />
         </CardContent>
       </Card>
     </div>

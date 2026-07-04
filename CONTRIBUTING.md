@@ -1,8 +1,8 @@
 # Contributing to Odin Platform
 
-Thanks for your interest in improving Odin! This repo is the hosted backend and
-dashboard for the [Odin CLI](https://github.com/AsimAftab/Odin-Platform) — an
-open-source, Windows-first workstation backup, restore, and migration tool.
+Thanks for your interest in improving Odin! This repo (`Odin-Platform`) is the
+hosted backend and dashboard for the [Odin CLI](https://github.com/AsimAftab/Project-Odin) —
+an open-source, Windows-first workstation backup, restore, and migration tool.
 Contributions of all kinds are welcome: bug reports, docs, features, and fixes.
 
 ## Ways to contribute
@@ -36,14 +36,25 @@ changing framework code, read the relevant guide in `node_modules/next/dist/docs
 and see `CLAUDE.md` / `AGENTS.md` for the architecture (two auth paths, the data
 model, and Next 16 specifics like `proxy.ts`).
 
-- Run `bun run lint` before opening a PR.
+- Run `bun run lint`, `bunx tsc --noEmit`, and `bun test` before opening a PR.
 - Keep changes focused; match the style of the surrounding code.
 - Never commit secrets — `.env.local` is gitignored; use `.env.example` for docs.
+- CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests, and build on every PR.
+
+## Changes that touch the CLI
+
+The [Odin CLI](https://github.com/AsimAftab/Project-Odin) talks to this backend
+over a small contract: the ingest payload (`POST /api/ingest`), the API token
+format (`odin_<keyId>_<secret>`), and the device-authorization flow
+(`/api/device/*`). If you change any of those, open the matching PR in the CLI
+repo and update `docs/odin-platform-spec.md` (mirrored in both repos).
 
 ## Pull request checklist
 
 - [ ] Linked to an issue (for non-trivial changes)
 - [ ] `bun run lint` passes
+- [ ] `bunx tsc --noEmit` passes
+- [ ] `bun test` passes
 - [ ] `bun run build` succeeds
 - [ ] No secrets or `.env` files committed
 

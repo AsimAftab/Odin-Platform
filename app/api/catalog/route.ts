@@ -20,10 +20,23 @@ export async function GET(req: NextRequest) {
     query.$or = [{ name: rx }, { description: rx }, { slug: rx }];
   }
 
-  const tools = await CatalogTool.find(query)
-    .select("name slug category description homepage install notes")
-    .sort({ category: 1, name: 1 })
-    .lean();
+  // Bound the result set. The catalog is curated and small today, but keep it
+  // from growing unbounded on the wire; callers can page with ?page=.
+  const limit = Math.min(
+    Math.max(parseInt(searchParams.get("limit") ?? "200") || 200, 1),
+    500
+  );
+  const page = Math.max(parseInt(searchParams.get("page") ?? "1") || 1, 1);
 
-  return NextResponse.json({ tools });
+  const [tools, total] = await Promise.all([
+    CatalogTool.find(query)
+      .select("name slug category description homepage install notes")
+      .sort({ category: 1, name: 1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean(),
+    CatalogTool.countDocuments(query),
+  ]);
+
+  return NextResponse.json({ tools, total, page, limit });
 }

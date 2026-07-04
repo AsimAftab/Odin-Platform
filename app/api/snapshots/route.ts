@@ -11,16 +11,26 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const machineId = searchParams.get("machineId");
-  const limit = Math.min(parseInt(searchParams.get("limit") ?? "50"), 100);
+  const limit = Math.min(
+    Math.max(parseInt(searchParams.get("limit") ?? "25") || 25, 1),
+    50
+  );
+  const page = Math.max(parseInt(searchParams.get("page") ?? "1") || 1, 1);
 
   const query: Record<string, unknown> = { userId };
   if (machineId) query.machineId = machineId;
 
-  const snapshots = await Snapshot.find(query)
-    .select("snapshotId machineId capturedAt tag schemaVersion lockSha256 createdAt")
-    .sort({ capturedAt: -1 })
-    .limit(limit)
-    .lean();
+  const [items, total] = await Promise.all([
+    Snapshot.find(query)
+      .select(
+        "snapshotId machineId capturedAt tag schemaVersion lockSha256 createdAt"
+      )
+      .sort({ capturedAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean(),
+    Snapshot.countDocuments(query),
+  ]);
 
-  return NextResponse.json({ snapshots });
+  return NextResponse.json({ items, total, page, limit });
 }

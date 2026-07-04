@@ -32,6 +32,8 @@ const SnapshotSchema = new Schema<ISnapshot>(
     git: { type: Schema.Types.Mixed, required: true },
     // Optional Asgard profiles summary (CLIs >= 0.8 send it).
     profiles: { type: Schema.Types.Mixed },
+    // SHA-256 over the captured sections, computed server-side at ingest — a
+    // real content-integrity digest (see app/api/ingest/route.ts).
     lockSha256: { type: String, required: true },
   },
   { timestamps: true }
@@ -39,6 +41,9 @@ const SnapshotSchema = new Schema<ISnapshot>(
 
 SnapshotSchema.index({ userId: 1, capturedAt: -1 });
 SnapshotSchema.index({ machineId: 1, capturedAt: -1 });
+// Serves the "latest snapshot per machine" aggregate on the overview / machines
+// pages without a collection scan.
+SnapshotSchema.index({ userId: 1, machineId: 1, capturedAt: -1 });
 
 export const Snapshot =
   mongoose.models.Snapshot ||

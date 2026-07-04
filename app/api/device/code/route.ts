@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { DeviceCode } from "@/models/DeviceCode";
+import { checkRateLimit, clientIp, rateLimitResponse } from "@/lib/rate-limit";
 import crypto from "crypto";
 
 // OAuth 2.0 Device Authorization Grant (RFC 8628) — step 1. The Odin CLI calls
@@ -26,6 +27,10 @@ function generateUserCode(): string {
 
 export async function POST(req: NextRequest) {
   try {
+    // Public endpoint that creates DB records — throttle per IP.
+    const limit = await checkRateLimit("device-code", clientIp(req), 10, 60);
+    if (!limit.ok) return rateLimitResponse(limit);
+
     await connectDB();
 
     const body = await req.json().catch(() => ({}));

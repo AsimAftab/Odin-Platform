@@ -18,3 +18,21 @@ export async function GET(
 
   return NextResponse.json({ snapshot });
 }
+
+// DELETE /api/snapshots/<id> — remove a single snapshot the caller owns.
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { userId } = await getSession();
+  if (!userId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  await connectDB();
+  const { id } = await params;
+  const result = await Snapshot.deleteOne({ snapshotId: id, userId });
+  if (result.deletedCount === 0) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  return NextResponse.json({ ok: true });
+}

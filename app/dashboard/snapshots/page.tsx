@@ -5,16 +5,28 @@ import { Machine } from "@/models/Machine";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
-import { Clock, Tag } from "lucide-react";
+import { Clock, Tag, ChevronLeft, ChevronRight } from "lucide-react";
 
-export default async function SnapshotsPage() {
+const PAGE_SIZE = 25;
+
+export default async function SnapshotsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const { userId } = await getSession();
   await connectDB();
 
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(parseInt(pageParam ?? "1") || 1, 1);
+
+  const total = await Snapshot.countDocuments({ userId });
+  const totalPages = Math.max(Math.ceil(total / PAGE_SIZE), 1);
   const snapshots = await Snapshot.find({ userId })
     .select("snapshotId machineId capturedAt tag createdAt")
     .sort({ capturedAt: -1 })
-    .limit(100)
+    .skip((page - 1) * PAGE_SIZE)
+    .limit(PAGE_SIZE)
     .lean();
 
   const machines = await Machine.find({ userId }).lean();
@@ -27,7 +39,7 @@ export default async function SnapshotsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-amber-400">Snapshots</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          {snapshots.length} snapshot{snapshots.length !== 1 ? "s" : ""} across all machines
+          {total} snapshot{total !== 1 ? "s" : ""} across all machines
         </p>
       </div>
 
@@ -69,6 +81,40 @@ export default async function SnapshotsPage() {
           </Link>
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2">
+          <p className="text-xs text-muted-foreground">
+            Page {page} of {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            {page > 1 ? (
+              <Link
+                href={`/dashboard/snapshots?page=${page - 1}`}
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-xs hover:border-amber-400/40"
+              >
+                <ChevronLeft className="w-3 h-3" /> Prev
+              </Link>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-md border border-border/40 px-2.5 py-1 text-xs text-muted-foreground/50">
+                <ChevronLeft className="w-3 h-3" /> Prev
+              </span>
+            )}
+            {page < totalPages ? (
+              <Link
+                href={`/dashboard/snapshots?page=${page + 1}`}
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-xs hover:border-amber-400/40"
+              >
+                Next <ChevronRight className="w-3 h-3" />
+              </Link>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-md border border-border/40 px-2.5 py-1 text-xs text-muted-foreground/50">
+                Next <ChevronRight className="w-3 h-3" />
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
