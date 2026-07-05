@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Clock, Tag, Monitor } from "lucide-react";
 import Link from "next/link";
-import { SnapshotActions } from "./snapshot-actions";
+import { CopyableId, SnapshotActions } from "./snapshot-actions";
 import type {
   EnvironmentSection,
   GitSection,
@@ -70,7 +70,9 @@ export default async function SnapshotDetailPage({
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold font-mono text-amber-400">{id.slice(0, 8)}…</h1>
+            <h1>
+              <CopyableId id={id} />
+            </h1>
             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
               <span className="flex items-center gap-1">
                 <Monitor className="w-3 h-3" /> {machine?.hostname}
