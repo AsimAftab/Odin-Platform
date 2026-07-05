@@ -37,7 +37,27 @@ export async function GET(
 
   await connectDB();
   const { id } = await params;
-  const snapshot = await Snapshot.findOne({ snapshotId: id, userId }).lean();
+  let snapshot = await Snapshot.findOne({ snapshotId: id, userId }).lean();
+
+  // Git-style short-id support: the dashboard displays truncated ids
+  // (`5656cc13…`), so fall back to a prefix match when the exact lookup
+  // misses. Only for safe-looking prefixes (hex + dashes, ≥ 6 chars), and only
+  // when unambiguous — two hits return 409 so the caller adds characters.
+  if (!snapshot && /^[0-9a-fA-F-]{6,64}$/.test(id)) {
+    const matches = await Snapshot.find({
+      snapshotId: { $regex: `^${id}` },
+      userId,
+    })
+      .limit(2)
+      .lean();
+    if (matches.length > 1) {
+      return NextResponse.json(
+        { error: "Ambiguous snapshot id prefix — add more characters" },
+        { status: 409 }
+      );
+    }
+    snapshot = matches[0] ?? null;
+  }
 
   if (!snapshot) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
