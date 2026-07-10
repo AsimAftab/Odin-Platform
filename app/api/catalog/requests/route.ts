@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { connectDB } from "@/lib/db";
 import { ToolRequest } from "@/models/ToolRequest";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 // GET — the current user's own tool requests.
 export async function GET() {
@@ -23,6 +24,10 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const { userId } = await getSession();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Creates DB rows from user input — cap per user.
+  const limit = await checkRateLimit("tool-request", userId, 20, 3600);
+  if (!limit.ok) return rateLimitResponse(limit);
 
   const { name, notes, manager, packageId, version } = await req.json();
   if (!name || typeof name !== "string" || !name.trim()) {

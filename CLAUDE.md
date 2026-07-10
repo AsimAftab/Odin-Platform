@@ -46,7 +46,7 @@ Odin Platform is the hosted backend + dashboard for the **Odin CLI**, a Windows-
    - Server-side reads: `getSession()` / `requireAuth()` in `lib/session.ts` — the drop-in for the old `auth()`, returns `{ userId, user }`.
    - Client: `lib/auth-client.ts` (`signIn`, `signUp`, `signOut`, `useSession`).
    - `proxy.ts` guards `/dashboard` with an **optimistic cookie check** (`getSessionCookie`, no DB call — edge-safe) and redirects to `/sign-in`. API routes self-guard via `getSession()` returning 401.
-2. **Bearer API token** (CLI). `/api/ingest` authenticates via `validateApiToken()` (`lib/api-token.ts`), which bcrypt-compares the raw token against every stored `ApiToken.tokenHash` (linear scan — hashes aren't reversible/queryable). Tokens are minted in `app/api/tokens/route.ts` (`odin_<hex>`), returned **once**, and only the bcrypt hash is persisted.
+2. **Bearer API token** (CLI). `/api/ingest` authenticates via `validateApiToken()` (`lib/api-token.ts`): tokens use the keyed format `odin_<keyId>_<secret>`, so validation is an O(1) lookup by public `keyId` followed by a single bcrypt compare. Tokens are minted in `app/api/tokens/route.ts`, returned **once**, and only the bcrypt hash is persisted.
 
 Public routes (no session needed): `/`, `/sign-in`, `/sign-up`, `/api/auth/*`, `/api/ingest`. Only `/dashboard` is force-guarded in `proxy.ts`.
 

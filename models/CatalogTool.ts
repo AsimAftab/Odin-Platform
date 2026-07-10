@@ -40,7 +40,9 @@ const CatalogToolSchema = new Schema<ICatalogTool>(
   { timestamps: true }
 );
 
-CatalogToolSchema.index({ name: "text", description: "text" });
+// No text index: /api/catalog?q= does escaped-regex substring search over
+// name/description/slug, which a $text index can't serve (word-boundary only).
+// The catalog is small and curated, so the scan is fine.
 
 export const CatalogTool =
   mongoose.models.CatalogTool ||
