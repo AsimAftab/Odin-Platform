@@ -1,5 +1,8 @@
 # Odin Platform
 
+[![CI](https://github.com/AsimAftab/Odin-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/AsimAftab/Odin-Platform/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 The hosted backend + dashboard for the [**Odin CLI**](https://github.com/AsimAftab/Project-Odin) — an open-source, Windows-first workstation backup, restore, and migration tool.
 
 The CLI captures your machine's state (installed packages, VS Code extensions, Git config, environment/PATH) into portable snapshots. Odin Platform is where those snapshots land: browse machines and snapshot history, diff two snapshots, inspect a Config Vault, check PATH/tool health, export a restore script, and browse a public tool catalog — all scoped to your account. Self-hostable; the hosted version is a convenience layer, not lock-in.

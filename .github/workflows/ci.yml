@@ -46,3 +46,14 @@ jobs:
 
       - name: Build
         run: bun run build
+
+  # Flags newly-introduced vulnerable or license-problematic dependencies on PRs.
+  dependency-review:
+    name: dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
