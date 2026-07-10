@@ -44,4 +44,6 @@ Status legend: ✅ done · 🟡 partial · ⬜ pending.
 - ✅ Self-host docs (README + `docs/architecture.md`, `docs/api.md`) for Better Auth, MongoDB, env vars.
 - ✅ `SECURITY.md` + contribution guide.
 - 🟡 CLI tests for config serialization and upload behavior (in progress in the CLI repo).
-- ⬜ Deeper integration tests for ingest/device-flow DB paths.
+- ✅ Deeper integration tests for ingest/device-flow DB paths
+  (`tests/integration/` — mongodb-memory-server: ingest auth/validation/
+  idempotency/rate-limit, RFC 8628 device flow, ownership isolation).
