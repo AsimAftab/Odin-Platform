@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { connectDB } from "@/lib/db";
 import { UserSettings } from "@/models/UserSettings";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 // GET — current user's settings (creates defaults on first read).
 export async function GET() {
@@ -23,6 +24,9 @@ export async function PATCH(req: NextRequest) {
   const { userId } = await getSession();
   if (!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const limit = await checkRateLimit("settings-patch", userId, 30, 60);
+  if (!limit.ok) return rateLimitResponse(limit);
 
   const body = await req.json().catch(() => ({}));
   const raw = Number(body?.retentionPerMachine);

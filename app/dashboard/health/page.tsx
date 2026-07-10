@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/session";
+import { requireAuth } from "@/lib/session";
 import { connectDB } from "@/lib/db";
 import { Snapshot } from "@/models/Snapshot";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +30,7 @@ function toolDetected(devTools: DeveloperTool[], executables: string[]) {
 }
 
 export default async function HealthPage() {
-  const { userId } = await getSession();
+  const userId = await requireAuth();
   await connectDB();
 
   const snap = await Snapshot.findOne({ userId })
