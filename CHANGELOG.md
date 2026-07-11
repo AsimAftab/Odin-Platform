@@ -8,12 +8,18 @@ releases yet; entries are grouped by merged pull request instead.
 
 ## [Unreleased]
 
-### Added
-
-- Rate limits on session-gated mutations (token minting, tool requests,
-  settings), security headers/CSP, and `requireAuth()` on the health page.
-
 ## Merged history
+
+- **#16** — Self-hosting: `GET /api/health` liveness probe, multi-stage
+  Dockerfile + docker-compose (app + MongoDB), structured JSON logging.
+- **#17** — Snapshot-staleness badges on the machines page (fresh/aging/stale).
+- **#9** — Route-level integration test suite on mongodb-memory-server
+  (ingest, device flow, ownership isolation).
+- **#8** — OSS hygiene: code of conduct, changelog, CODEOWNERS, dependabot,
+  badges, engines pin, dependency-review CI job.
+- **#7** — Rate limits on session-gated mutations (token minting, tool
+  requests, settings), security headers/CSP, `requireAuth()` on the health
+  page.
 
 - **#6** — Short-id prefix lookup for `GET /api/snapshots/[id]` + copyable full
   snapshot id in the dashboard.
