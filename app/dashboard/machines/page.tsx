@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Monitor, Clock, Package, Code } from "lucide-react";
 import { latestSnapshotSummaries } from "@/lib/snapshot-queries";
+import { classifyStaleness, STALENESS_BADGE } from "@/lib/staleness";
 
 export default async function MachinesPage() {
   const userId = await requireAuth();
@@ -37,6 +38,7 @@ export default async function MachinesPage() {
           const extCount = summary?.extCount ?? 0;
           const devTools = summary?.developerTools ?? [];
           const detectedTools = devTools.filter((t) => t.path).map((t) => t.name);
+          const staleness = classifyStaleness(machine.lastSeenAt);
 
           return (
             <Card key={machine._id.toString()} className="hover:border-amber-400/40 transition-colors">
@@ -49,7 +51,18 @@ export default async function MachinesPage() {
                       <p className="text-xs text-muted-foreground">{machine.username}</p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="text-xs">{machine.osVersion || "Windows"}</Badge>
+                  <div className="flex items-center gap-1">
+                    {staleness.level !== "fresh" && (
+                      <Badge
+                        variant="outline"
+                        className={`text-xs ${STALENESS_BADGE[staleness.level]}`}
+                        title={`Last snapshot ${staleness.label} — run odin snapshot --push to refresh`}
+                      >
+                        {staleness.level === "stale" ? "stale" : "aging"} · {staleness.label}
+                      </Badge>
+                    )}
+                    <Badge variant="outline" className="text-xs">{machine.osVersion || "Windows"}</Badge>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -77,7 +90,9 @@ export default async function MachinesPage() {
 
                 <div className="flex items-center gap-2 text-xs text-muted-foreground border-t border-border pt-2">
                   <Clock className="w-3 h-3" />
-                  <span>Last seen {new Date(machine.lastSeenAt).toLocaleString()}</span>
+                  <span>
+                    Last seen {staleness.label} ({new Date(machine.lastSeenAt).toLocaleString()})
+                  </span>
                 </div>
               </CardContent>
             </Card>
