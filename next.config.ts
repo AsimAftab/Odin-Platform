@@ -34,6 +34,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Self-contained server bundle for the Docker image; harmless on Vercel.
+  output: "standalone",
   turbopack: {
     root: path.resolve(__dirname),
   },

@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { DeviceCode } from "@/models/DeviceCode";
 import { mintApiToken } from "@/lib/mint-token";
 import { checkRateLimit, clientIp, rateLimitResponse } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 // OAuth 2.0 Device Authorization Grant (RFC 8628) — step 3. The CLI polls this
 // (unauthenticated, it holds the device_code secret) until the user approves.
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
       account: { email: claimed.userEmail ?? null },
     });
   } catch (err) {
-    console.error("[device/token]", err);
+    logger.error("device.token", err);
     return NextResponse.json({ error: "server_error" }, { status: 500 });
   }
 }

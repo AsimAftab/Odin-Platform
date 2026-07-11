@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RateLimit } from "@/models/RateLimit";
 import { connectDB } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 export interface RateLimitResult {
   ok: boolean;
@@ -49,7 +50,7 @@ export async function checkRateLimit(
     };
   } catch (err) {
     // Fail open: never let the limiter itself cause an outage.
-    console.error("[rate-limit]", err);
+    logger.error("rate-limit", err, { bucket, identifier });
     return { ok: true, limit, remaining: limit, retryAfter };
   }
 }
