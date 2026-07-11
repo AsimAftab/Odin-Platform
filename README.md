@@ -78,6 +78,15 @@ Tokens use the format `odin_<keyId>_<secret>`; the CLI treats them as opaque and
 
 Deploys cleanly to Vercel (or any Node host). Set the four env vars above in your host's project settings. Better Auth is fully self-hosted (no external provider), so it works on any origin including `*.vercel.app`.
 
+**Self-hosting with Docker:**
+
+```bash
+export BETTER_AUTH_SECRET=$(openssl rand -hex 32)
+docker compose up -d        # app + MongoDB, http://localhost:3000
+```
+
+See [`docs/self-hosting.md`](./docs/self-hosting.md) for the full guide. `GET /api/health` is a public liveness probe for load balancers and monitors.
+
 ## Documentation
 
 - [`docs/architecture.md`](./docs/architecture.md) — how the app is structured (two auth paths, data ownership, Next 16 conventions).

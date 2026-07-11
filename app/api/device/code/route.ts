@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { DeviceCode } from "@/models/DeviceCode";
 import { checkRateLimit, clientIp, rateLimitResponse } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 import crypto from "crypto";
 
 // OAuth 2.0 Device Authorization Grant (RFC 8628) — step 1. The Odin CLI calls
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
       interval: INTERVAL,
     });
   } catch (err) {
-    console.error("[device/code]", err);
+    logger.error("device.code", err);
     return NextResponse.json({ error: "server_error" }, { status: 500 });
   }
 }

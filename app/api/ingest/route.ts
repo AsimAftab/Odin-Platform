@@ -11,6 +11,7 @@ import {
   clientIp,
   rateLimitResponse,
 } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
   try {
@@ -138,12 +139,12 @@ export async function POST(req: NextRequest) {
         }
       }
     } catch (retentionErr) {
-      console.error("[ingest] retention", retentionErr);
+      logger.error("ingest.retention", retentionErr);
     }
 
     return NextResponse.json({ ok: true, snapshotId: snapshot.snapshotId });
   } catch (err) {
-    console.error("[ingest]", err);
+    logger.error("ingest", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
